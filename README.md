@@ -68,3 +68,4 @@ To run this project locally, follow these steps:
 
 - Name: [Charan1197](https://github.com/Charan1197)
 - Email: kolapallicharan@gmail.com
+- Linkedin: [Charan Kolapalli](https://www.linkedin.com/in/charan-kolapalli-b19692250/)
