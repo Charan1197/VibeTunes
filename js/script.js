@@ -22,7 +22,7 @@ function convertSeconds(seconds) {
 
 async function getSongs(folder) {
     currFolder = folder
-    let a = await fetch(`/${folder}/`)
+    let a = await fetch(`https://vibetunes.freewebhostmost.com/${folder}/`)
     let response = await a.text()
     let div = document.createElement('div')
     div.innerHTML = response
@@ -33,11 +33,11 @@ async function getSongs(folder) {
         const element = as[index];
         if (element.href.endsWith('.mp3')) {
             // songs.push(element.href.split("/songs/")[1])
-            const songTitle = decodeURI(element.href.split(`${folder.replaceAll(" ", "%20")}`)[1]).slice(1, -4)
+            const songTitle = decodeURI(element.href.split(`${folder.replaceAll(" ", "%20")}`)[1]).slice(1,-4)
             // console.log(songTitle)
             // console.log(element.href.split(`${folder.replaceAll(" ", "%20")}`))
             songs.push(songTitle)
-
+            
         }
     }
 
@@ -45,7 +45,7 @@ async function getSongs(folder) {
     songUL.innerHTML = ""
     for (let index = 0; index < songs.length; index++) {
         const song = songs[index];
-        let a = await fetch(`/${folder}/info.json`)
+        let a = await fetch(`https://vibetunes.freewebhostmost.com/${folder}/info.json`)
         let response = await a.json()
         songUL.innerHTML = songUL.innerHTML + `<li>
             <img class="invert icon-size" src="icons/music.svg" alt="" style="padding-right: 5px;">
@@ -64,19 +64,18 @@ async function getSongs(folder) {
     Array.from(document.querySelector(".songList").getElementsByTagName('li')).forEach(e => {
         e.addEventListener("click", element => {
             playMusic(e.querySelector(".info").firstElementChild.innerHTML.trim())
-
             if (window.innerWidth <= 1200) {
-                // Show the left bar (mobile view) when playlist is clicked
                 let leftBar = document.querySelector(".left");
                 leftBar.style.left = "-150%"; // Slide-in animation
             }
         })
+
     })
 
 }
 
 const playMusic = (track, pause = false) => {
-    const songUrl = `/${currFolder}/${track}.mp3`
+    const songUrl = `https://vibetunes.freewebhostmost.com/${currFolder}/${track}.mp3`
     currentSong.src = songUrl
     if (!pause) {
         currentSong.play()
@@ -86,10 +85,8 @@ const playMusic = (track, pause = false) => {
     document.querySelector(".songtime").innerHTML = "00:00 / 00:00"
 }
 
-
-
 async function displayAlbums() {
-    let a = await fetch(`/songs/`)
+    let a = await fetch(`https://vibetunes.freewebhostmost.com/songs/`)
     let response = await a.text()
     let div = document.createElement('div')
     div.innerHTML = response
@@ -97,15 +94,15 @@ async function displayAlbums() {
     let array = Array.from(anchors)
     for (let index = 0; index < array.length; index++) {
         const e = array[index];
-
-        if (e.href.includes("/songs/")) {
+        
+        if (e.href.includes("/songs/")  && !e.href.includes(".htaccess")) {
             let folder = e.title || e.dataset.folder || e.innerText
             if (!folder) {
                 console.error("Folder name is missing");
                 continue;  // Skip if folder is empty
             }
             //get the meta data of the folder
-            let a = await fetch(`/songs/${folder}/info.json`)
+            let a = await fetch(`https://vibetunes.freewebhostmost.com/songs/${folder}/info.json`)
             let response = await a.json()
             console.log(response)
             let cardContainer = document.querySelector(".cardContainer")
@@ -135,43 +132,44 @@ async function displayAlbums() {
         e.addEventListener("click", async item => {
             console.log(item, item.currentTarget.dataset)
             await getSongs(`songs/${item.currentTarget.dataset.folder}`)
-            playMusic(songs[0])
+            playMusic(songs[0])  
 
             if (window.innerWidth <= 1200) {
                 // Show the left bar (mobile view) when playlist is clicked
                 let leftBar = document.querySelector(".left");
                 leftBar.style.left = "0"; // Slide-in animation
             }
-
+            
         })
     })
 }
 
 
 async function main() {
-    // Get the list of all the songs
-    await getSongs("songs/Arijit Singh songs");
-    playMusic(songs[0], true);
+    //Get the list of all the songs
+    await getSongs("songs/Arijit Singh songs")
+    playMusic(songs[0], true)
 
-    // Display all the albums on the page
-    displayAlbums();
+    //display all the albums on the page
+    displayAlbums()
 
-    // Attach an eventListener to play, next, and previous
+    //Attach an eventListener to play, next and previous
     play.addEventListener("click", () => {
         if (currentSong.paused) {
-            currentSong.play();
-            play.src = "icons/pause.svg";
+            currentSong.play()
+            play.src = "icons/pause.svg"
         } else {
-            currentSong.pause();
-            play.src = "icons/play.svg";
+            currentSong.pause()
+            play.src = "icons/play.svg"
         }
-    });
+    })
 
-    // Listen for time update event
+    //listen for time update event
     currentSong.addEventListener("timeupdate", () => {
-        document.querySelector(".songtime").innerHTML = `${convertSeconds(currentSong.currentTime)} / ${convertSeconds(currentSong.duration)}`;
-        document.querySelector(".circle").style.left = (currentSong.currentTime / currentSong.duration) * 100 + "%";
-    });
+        document.querySelector(".songtime").innerHTML = `${convertSeconds(currentSong.currentTime)}  / ${convertSeconds(currentSong.duration)}`
+        document.querySelector(".circle").style.left = (currentSong.currentTime / currentSong.duration) * 100 + "%"
+
+    })
 
     // Listen for the ended event to play the next song automatically
     currentSong.addEventListener("ended", () => {
@@ -180,73 +178,91 @@ async function main() {
         playMusic(songs[nextIndex]);
     });
 
-    // Add an event listener to the seekbar
-    document.querySelector(".seekbar").addEventListener("click", (e) => {
-        let percent = (e.offsetX / e.target.getBoundingClientRect().width) * 100;
-        document.querySelector(".circle").style.left = percent + "%";
-        currentSong.currentTime = (currentSong.duration * percent) / 100;
-    });
+    //add an event listener to seekbar
+    document.querySelector(".seekbar").addEventListener("click", e => {
+        let percent = (e.offsetX / e.target.getBoundingClientRect().width) * 100
+        document.querySelector(".circle").style.left = percent + "%"
+        currentSong.currentTime = (currentSong.duration * percent) / 100
 
-    // Add an event listener for the hamburger menu
+    })
+
+    //add an event listener for hamburger
     document.querySelector(".hamburger").addEventListener("click", () => {
-        document.querySelector(".left").style.left = "0";
-    });
+        document.querySelector(".left").style.left = "0"
+    })
 
-    // Add an event listener for the close button
+    //add an event listener for close
     document.querySelector(".close").addEventListener("click", () => {
-        document.querySelector(".left").style.left = "-150%";
-    });
+        document.querySelector(".left").style.left = "-150%"
 
-    // Add an event listener to previous and next buttons
+    })
+
+    //add an event listener to previous and next
     previous.addEventListener("click", () => {
-        let cs = decodeURI(currentSong.src.split("/").slice(-1)[0]).replace(".mp3", "");
-        let index = songs.indexOf(cs);
+
+        let cs = decodeURI(currentSong.src.split("/").slice(-1)).replace(".mp3", "")
+        let index = songs.indexOf(cs)
 
         if ((index - 1) >= 0) {
-            playMusic(songs[index - 1]);
+            playMusic(songs[index - 1])
         }
-    });
+    })
 
     next.addEventListener("click", () => {
-        let cs = decodeURI(currentSong.src.split("/").slice(-1)[0]).replace(".mp3", "");
-        let index = songs.indexOf(cs);
+
+        let cs = decodeURI(currentSong.src.split("/").slice(-1)).replace(".mp3", "")
+        let index = songs.indexOf(cs)
 
         if ((index + 1) < songs.length) {
-            playMusic(songs[index + 1]);
+            playMusic(songs[index + 1])
         }
-    });
+    })
 
-    document.querySelector(".volume>img").addEventListener("click", (e) => {
-        if (e.target.src.includes("icons/volume.svg")) {
-            e.target.src = e.target.src.replace("icons/volume.svg", "icons/mute.svg");
-            currentSong.volume = 0;
-            document.querySelector("#rng").value = "0";
-        } else if (e.target.src.includes("icons/lowVolume.svg")) {
-            e.target.src = e.target.src.replace("icons/lowVolume.svg", "icons/mute.svg");
-            currentSong.volume = 0;
-            document.querySelector("#rng").value = "0";
-        } else {
-            e.target.src = e.target.src.replace("icons/mute.svg", "icons/volume.svg");
-            currentSong.volume = 0.5;
-            document.querySelector("#rng").value = "50";
+    document.querySelector(".volume>img").addEventListener("click", e=>{
+        // console.log(e.target)
+        if(e.target.src.includes("icons/volume.svg")){
+            e.target.src =e.target.src.replace("icons/volume.svg", "icons/mute.svg")
+            currentSong.volume = 0
+            document.querySelector("#rng").value = "0"
+            // console.log(range.value)
+        }else if(e.target.src.includes("icons/lowVolume.svg")){
+            e.target.src =e.target.src.replace("icons/lowVolume.svg", "icons/mute.svg")
+            currentSong.volume = 0
+            document.querySelector("#rng").value = "0"
         }
-    });
+        else{
+            e.target.src = e.target.src.replace("icons/mute.svg", "icons/volume.svg")
+            currentSong.volume = 0.5
+            document.querySelector("#rng").value = "50"
+        }
+    })
 
     document.querySelector(".range").getElementsByTagName("input")[0].addEventListener("change", (e) => {
-        currentSong.volume = parseInt(e.target.value) / 100;
-        if (e.target.value == 0) {
-            document.querySelector(".volume>img").src = "icons/mute.svg";
-        } else if (e.target.value < 25) {
-            document.querySelector(".volume>img").src = "icons/lowVolume.svg";
-        } else {
-            document.querySelector(".volume>img").src = "icons/volume.svg";
+        currentSong.volume = parseInt(e.target.value) / 100
+        // console.log(e.target.value)
+        if(e.target.value==0){
+            document.querySelector(".volume>img").src = "icons/mute.svg"
+        }else if(e.target.value<25){
+            document.querySelector(".volume>img").src = "icons/lowVolume.svg"
+            // console.log()
+        }else{
+            document.querySelector(".volume>img").src = "icons/volume.svg"
         }
-    });
+    })
 
+    
     if ('caches' in window) {
-        caches.keys().then(function (names) {
+        caches.keys().then(function(names) {
             for (let name of names) caches.delete(name);
         });
     }
+
+    const cssLink = document.getElementById('css-style');
+    cssLink.href = cssLink.href + '?v=' + new Date().getTime();
+
+    const script = document.createElement('script');
+    script.src = 'scripts.js?v=' + new Date().getTime();
+    document.head.appendChild(script);
 }
+
 main()
